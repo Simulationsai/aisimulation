@@ -4,6 +4,15 @@ function sendMessage(msg) {
   })
 }
 
+let autoSaveTimer = null
+
+function scheduleAutoSave() {
+  if (autoSaveTimer) clearTimeout(autoSaveTimer)
+  autoSaveTimer = setTimeout(() => {
+    saveSettings().catch(() => {})
+  }, 250)
+}
+
 function fmtIso(iso) {
   if (!iso) return '—'
   try {
@@ -19,15 +28,21 @@ function setText(id, text, cls) {
   el.className = cls || ''
 }
 
+function isEditingField(id) {
+  const el = document.getElementById(id)
+  return document.activeElement === el
+}
+
 async function refresh() {
   const resp = await sendMessage({ type: 'GET_STATE' })
   if (!resp?.ok) return
   const s = resp.state
 
-  document.getElementById('apiUrl').value = s.apiUrl || ''
-  document.getElementById('nodeKey').value = s.nodeKey || ''
-  document.getElementById('nodeName').value = s.nodeName || ''
-  document.getElementById('intervalMinutes').value = String(s.intervalMinutes || 1)
+  // Don't overwrite user input while they are typing.
+  if (!isEditingField('apiUrl')) document.getElementById('apiUrl').value = s.apiUrl || ''
+  if (!isEditingField('nodeKey')) document.getElementById('nodeKey').value = s.nodeKey || ''
+  if (!isEditingField('nodeName')) document.getElementById('nodeName').value = s.nodeName || ''
+  if (!isEditingField('intervalMinutes')) document.getElementById('intervalMinutes').value = String(s.intervalMinutes || 1)
 
   setText('running', s.running ? 'Yes' : 'No', s.running ? 'ok' : 'muted')
   setText('nodeId', s.nodeId || '—', s.nodeId ? 'ok' : 'muted')
@@ -75,6 +90,11 @@ document.getElementById('saveBtn').addEventListener('click', saveSettings)
 document.getElementById('startBtn').addEventListener('click', start)
 document.getElementById('stopBtn').addEventListener('click', stop)
 document.getElementById('testBtn').addEventListener('click', test)
+
+// Auto-save while typing so refresh always reflects current values.
+;['apiUrl', 'nodeKey', 'nodeName', 'intervalMinutes'].forEach((id) => {
+  document.getElementById(id).addEventListener('input', scheduleAutoSave)
+})
 
 refresh()
 setInterval(refresh, 1200)
