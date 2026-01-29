@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "AISimulation Lite Node",
+  "version": "0.1.0",
+  "description": "Runs a Lite Node from your browser and reports metrics to AISimulation.",
+  "action": {
+    "default_title": "AISimulation Lite Node",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": ["storage", "alarms"],
+  "host_permissions": [
+    "http://localhost/*",
+    "http://127.0.0.1/*",
+    "https://*/*"
+  ]
+}
+
