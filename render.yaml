@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: simulationai-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Render will automatically provide PORT; do not hardcode it.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: simulationai-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false
+
+databases:
+  - name: simulationai-db
+    plan: free
+    databaseName: aisimulation
