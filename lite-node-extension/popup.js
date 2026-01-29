@@ -91,10 +91,8 @@ document.getElementById('startBtn').addEventListener('click', start)
 document.getElementById('stopBtn').addEventListener('click', stop)
 document.getElementById('testBtn').addEventListener('click', test)
 
-// Auto-save while typing so refresh always reflects current values.
-;['apiUrl', 'nodeKey', 'nodeName', 'intervalMinutes'].forEach((id) => {
-  document.getElementById(id).addEventListener('input', scheduleAutoSave)
-})
+// Auto-save while typing the key so refresh always reflects current value.
+document.getElementById('nodeKey').addEventListener('input', scheduleAutoSave)
 
 refresh()
 setInterval(refresh, 1200)

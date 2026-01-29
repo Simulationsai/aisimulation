@@ -149,8 +149,8 @@ export class AirdropService {
     await this.airdropTaskRepository.save(task)
 
     // Update XP
-    airdropUser.taskXP += xpReward
-    airdropUser.totalXP += xpReward
+    airdropUser.taskXP = this.toNumber(airdropUser.taskXP) + this.toNumber(xpReward)
+    airdropUser.totalXP = this.toNumber(airdropUser.totalXP) + this.toNumber(xpReward)
     await this.airdropUserRepository.save(airdropUser)
 
     // Update referrer XP if applicable
@@ -195,8 +195,8 @@ export class AirdropService {
     await this.airdropTaskRepository.save(task)
 
     // Update XP
-    airdropUser.taskXP += xpReward
-    airdropUser.totalXP += xpReward
+    airdropUser.taskXP = this.toNumber(airdropUser.taskXP) + this.toNumber(xpReward)
+    airdropUser.totalXP = this.toNumber(airdropUser.totalXP) + this.toNumber(xpReward)
     await this.airdropUserRepository.save(airdropUser)
 
     // Update referrer XP if applicable
@@ -233,21 +233,21 @@ export class AirdropService {
     })
 
     if (referral) {
-      referral.totalXPByInvitee += inviteeXP
-      referral.referrerXP += referrerBonusXP
+      referral.totalXPByInvitee = this.toNumber(referral.totalXPByInvitee) + this.toNumber(inviteeXP)
+      referral.referrerXP = this.toNumber(referral.referrerXP) + this.toNumber(referrerBonusXP)
       await this.referralRepository.save(referral)
     }
 
     // Update referrer's total referral XP
-    referrer.referralXP += referrerBonusXP
-    referrer.totalXP += referrerBonusXP
+    referrer.referralXP = this.toNumber(referrer.referralXP) + this.toNumber(referrerBonusXP)
+    referrer.totalXP = this.toNumber(referrer.totalXP) + this.toNumber(referrerBonusXP)
     await this.airdropUserRepository.save(referrer)
   }
 
   async addNodeXP(userId: string, xpAmount: number) {
     const airdropUser = await this.getOrCreateAirdropUser(userId)
-    airdropUser.nodeXP += xpAmount
-    airdropUser.totalXP += xpAmount
+    airdropUser.nodeXP = this.toNumber(airdropUser.nodeXP) + this.toNumber(xpAmount)
+    airdropUser.totalXP = this.toNumber(airdropUser.totalXP) + this.toNumber(xpAmount)
     await this.airdropUserRepository.save(airdropUser)
 
     // Update referrer XP if applicable
@@ -347,11 +347,22 @@ export class AirdropService {
       throw new BadRequestException('XP already converted to SIMU tokens')
     }
 
-    const simuAmount = airdropUser.totalXP * conversionRate
+    const simuAmount = this.toNumber(airdropUser.totalXP) * this.toNumber(conversionRate)
     airdropUser.simuTokens = simuAmount
     await this.airdropUserRepository.save(airdropUser)
 
-    return { simuTokens: simuAmount, totalXP: airdropUser.totalXP }
+    return { simuTokens: simuAmount, totalXP: this.toNumber(airdropUser.totalXP) }
+  }
+
+  private toNumber(value: any): number {
+    if (typeof value === 'number') return value
+    if (typeof value === 'string') {
+      const n = Number(value)
+      return Number.isFinite(n) ? n : 0
+    }
+    if (value == null) return 0
+    const n = Number(value)
+    return Number.isFinite(n) ? n : 0
   }
 
   private generateReferralCode(userId: string): string {
