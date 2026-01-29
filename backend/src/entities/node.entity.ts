@@ -31,6 +31,18 @@ export class Node {
   @Column({ nullable: true })
   token: string // For Ultra nodes
 
+  @Column({ type: 'timestamptz', nullable: true })
+  lastSeenAt: Date | null
+
+  @Column({ type: 'jsonb', nullable: true })
+  lastMetrics: {
+    cpu?: number
+    memory?: number
+    bandwidth?: number
+    latency?: number
+    tasksCompleted?: number
+  } | null
+
   @CreateDateColumn()
   createdAt: Date
 

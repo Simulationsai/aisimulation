@@ -19,11 +19,11 @@ export class NodesService {
     })
   }
 
-  async createLiteNode(userId: string) {
+  async createLiteNode(userId: string, name?: string) {
     const node = this.nodeRepository.create({
       userId,
       type: 'lite',
-      name: 'Lite Node',
+      name: name?.trim() || 'Lite Node',
       status: 'active',
       uptime: 99.9,
       earnings: 0,
@@ -32,11 +32,11 @@ export class NodesService {
     return node
   }
 
-  async createUltraNode(userId: string, token: string) {
+  async createUltraNode(userId: string, token: string, name?: string) {
     const node = this.nodeRepository.create({
       userId,
       type: 'ultra',
-      name: 'Ultra Node',
+      name: name?.trim() || 'Ultra Node',
       status: 'active',
       uptime: 99.5,
       earnings: 0,
@@ -93,14 +93,47 @@ export class NodesService {
   async getMetrics(userId: string, id: string) {
     const node = await this.getNode(userId, id)
     
-    // Return mock metrics (replace with real metrics later)
+    if (node.lastMetrics) {
+      return {
+        cpu: typeof node.lastMetrics.cpu === 'number' ? node.lastMetrics.cpu : Math.random() * 100,
+        memory: typeof node.lastMetrics.memory === 'number' ? node.lastMetrics.memory : Math.random() * 100,
+        bandwidth: typeof node.lastMetrics.bandwidth === 'number' ? node.lastMetrics.bandwidth : Math.random() * 1000,
+        latency: typeof node.lastMetrics.latency === 'number' ? node.lastMetrics.latency : Math.random() * 50,
+        tasksCompleted:
+          typeof node.lastMetrics.tasksCompleted === 'number' ? node.lastMetrics.tasksCompleted : Math.floor(Math.random() * 1000),
+        lastSeenAt: node.lastSeenAt,
+      }
+    }
+
+    // Return mock metrics (until real metrics reported)
     return {
       cpu: Math.random() * 100,
       memory: Math.random() * 100,
       bandwidth: Math.random() * 1000,
       latency: Math.random() * 50,
       tasksCompleted: Math.floor(Math.random() * 1000),
+      lastSeenAt: node.lastSeenAt,
     }
+  }
+
+  async reportNode(
+    userId: string,
+    nodeId: string,
+    payload: {
+      uptimeHours: number
+      metrics?: { cpu?: number; memory?: number; bandwidth?: number; latency?: number; tasksCompleted?: number }
+    },
+  ) {
+    const node = await this.getNode(userId, nodeId)
+    const xpAwarded = await this.calculateNodeXP(userId, nodeId, payload.uptimeHours)
+
+    node.lastSeenAt = new Date()
+    node.lastMetrics = payload.metrics || null
+    // Treat earnings as XP earnings for now (UI uses XP)
+    node.earnings = Number(node.earnings || 0) + Number(xpAwarded || 0)
+    await this.nodeRepository.save(node)
+
+    return { node, xpAwarded }
   }
 
   async deleteNode(userId: string, id: string) {

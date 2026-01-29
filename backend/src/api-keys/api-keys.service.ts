@@ -55,4 +55,16 @@ export class ApiKeysService {
       limit: apiKey.limit,
     }
   }
+
+  async findByKey(key: string) {
+    const apiKey = await this.apiKeyRepository.findOne({ where: { key } })
+    if (!apiKey) return null
+
+    // Update usage tracking
+    apiKey.usage += 1
+    apiKey.lastUsed = new Date()
+    await this.apiKeyRepository.save(apiKey)
+
+    return apiKey
+  }
 }
