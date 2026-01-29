@@ -157,7 +157,7 @@ export const api = {
       }
       return response;
     },
-    async register(data: { name: string; email: string; password: string }) {
+    async register(data: { name: string; email: string; password: string; inviteCode?: string }) {
       const response = await request<{ token: string; user: any }>('api/auth/register', {
         method: 'POST',
         body: JSON.stringify(data),

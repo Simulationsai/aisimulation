@@ -49,6 +49,7 @@ function RegisterForm() {
         name: formData.name,
         email: formData.email,
         password: formData.password,
+        inviteCode: inviteCode.trim(),
       })
       router.push('/dashboard')
     } catch (err: any) {

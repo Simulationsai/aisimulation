@@ -139,6 +139,10 @@ function AirdropContent() {
     acc[task.taskType] = (acc[task.taskType] || 0) + (task.xpReward || 0)
     return acc
   }, {})
+  const computedTaskXP = taskHistory.reduce((sum: number, task: any) => sum + (task.xpReward || 0), 0)
+  const computedNodeXP = airdropData?.airdropUser?.nodeXP || 0
+  const computedReferralXP = airdropData?.airdropUser?.referralXP || 0
+  const computedTotalXP = computedTaskXP + computedNodeXP + computedReferralXP
 
   return (
     <main className="min-h-screen bg-black text-white py-20 px-8">
@@ -219,7 +223,7 @@ function AirdropContent() {
               <Coins className="w-6 h-6 text-cyan-400" />
               <span className="text-sm text-gray-400">Total XP</span>
             </div>
-            <div className="text-3xl font-bold text-cyan-400">{airdropData?.airdropUser?.totalXP?.toLocaleString() || 0}</div>
+            <div className="text-3xl font-bold text-cyan-400">{computedTotalXP.toLocaleString()}</div>
             {typeof airdropData?.airdropUser?.simuTokens === 'number' && (
               <div className="text-sm text-green-400 mt-1">
                 = {airdropData.airdropUser.simuTokens.toLocaleString()} $SIMU
@@ -231,21 +235,21 @@ function AirdropContent() {
               <Twitter className="w-6 h-6 text-cyan-400" />
               <span className="text-sm text-gray-400">Task XP</span>
             </div>
-            <div className="text-3xl font-bold text-cyan-400">{airdropData?.airdropUser?.taskXP?.toLocaleString() || 0}</div>
+            <div className="text-3xl font-bold text-cyan-400">{computedTaskXP.toLocaleString()}</div>
           </div>
           <div className="glass-effect rounded-xl p-6 border border-cyan-500/20">
             <div className="flex items-center gap-3 mb-2">
               <Gift className="w-6 h-6 text-cyan-400" />
               <span className="text-sm text-gray-400">Node XP</span>
             </div>
-            <div className="text-3xl font-bold text-cyan-400">{airdropData?.airdropUser?.nodeXP?.toLocaleString() || 0}</div>
+            <div className="text-3xl font-bold text-cyan-400">{computedNodeXP.toLocaleString()}</div>
           </div>
           <div className="glass-effect rounded-xl p-6 border border-cyan-500/20">
             <div className="flex items-center gap-3 mb-2">
               <Users className="w-6 h-6 text-cyan-400" />
               <span className="text-sm text-gray-400">Referral XP</span>
             </div>
-            <div className="text-3xl font-bold text-cyan-400">{airdropData?.airdropUser?.referralXP?.toLocaleString() || 0}</div>
+            <div className="text-3xl font-bold text-cyan-400">{computedReferralXP.toLocaleString()}</div>
           </div>
         </div>
 
@@ -332,7 +336,7 @@ function AirdropContent() {
                 id: 'mandatory_follow',
                 title: 'Follow @Simulationsnod',
                 reward: 100,
-                completed: mandatoryTasks.follow,
+                completed: (taskXpByType['mandatory_follow'] || 0) > 0,
                 link: TWITTER_URL,
                 linkLabel: 'Follow',
               },
@@ -340,7 +344,7 @@ function AirdropContent() {
                 id: 'mandatory_retweet',
                 title: 'Retweet & tag 3 friends',
                 reward: 200,
-                completed: mandatoryTasks.retweet,
+                completed: (taskXpByType['mandatory_retweet'] || 0) > 0,
                 link: `https://twitter.com/intent/retweet?tweet_id=${TWITTER_POST_ID}`,
                 linkLabel: 'Retweet',
               },
@@ -348,7 +352,7 @@ function AirdropContent() {
                 id: 'mandatory_like_comment',
                 title: 'Like & comment',
                 reward: 150,
-                completed: mandatoryTasks.likeComment,
+                completed: (taskXpByType['mandatory_like_comment'] || 0) > 0,
                 link: `https://twitter.com/intent/like?tweet_id=${TWITTER_POST_ID}`,
                 linkLabel: 'Like & Comment',
               },

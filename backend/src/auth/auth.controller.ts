@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards, Request, HttpCode, HttpStatus, Req, Res, UseInterceptors } from '@nestjs/common'
+import { Controller, Post, Body, Get, UseGuards, Request, HttpCode, HttpStatus, Req, Res, UseInterceptors, ForbiddenException } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { AuthService } from './auth.service'
 import { JwtAuthGuard } from './guards/jwt-auth.guard'
@@ -14,8 +14,20 @@ export class AuthController {
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  async register(@Body() body: { name: string; email: string; password: string }) {
+  async register(@Body() body: { name: string; email: string; password: string; inviteCode?: string }) {
     try {
+      const inviteCode = (body.inviteCode || '').trim()
+      const requiredSingle = (this.configService.get<string>('EARLY_ACCESS_INVITE_CODE') || '').trim()
+      const requiredList = (this.configService.get<string>('EARLY_ACCESS_INVITE_CODES') || '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+
+      const requiredCodes = Array.from(new Set([requiredSingle, ...requiredList].filter(Boolean)))
+      if (requiredCodes.length > 0 && !requiredCodes.includes(inviteCode)) {
+        throw new ForbiddenException('Invalid invite code')
+      }
+
       return await this.authService.register(body.name, body.email, body.password)
     } catch (error) {
       throw error
