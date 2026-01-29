@@ -8,7 +8,8 @@ import api from '@/lib/api'
 export default function DashboardPage() {
   const [stats, setStats] = useState({
     latency: 12,
-    tokens: 0,
+    totalXP: 0,
+    nodeXP: 0,
     referrals: 0,
     nodes: 0,
   })
@@ -21,14 +22,12 @@ export default function DashboardPage() {
   const loadDashboardData = async () => {
     try {
       setLoading(true)
-      // Load wallet balance
-      const balance = await api.wallet.getBalance()
-      // Load nodes
-      const nodes = await api.nodes.list()
+      const [airdrop, nodes] = await Promise.all([api.airdrop.getStatus(), api.nodes.list()])
       
       setStats({
         latency: 12,
-        tokens: balance.total,
+        totalXP: Number(airdrop?.airdropUser?.totalXP || 0),
+        nodeXP: Number(airdrop?.airdropUser?.nodeXP || 0),
         referrals: 0, // TODO: Load from referrals API
         nodes: nodes.length,
       })
@@ -69,19 +68,19 @@ export default function DashboardPage() {
           <div className="glass-effect rounded-lg p-6 border border-cyan-500/20">
             <div className="flex items-center justify-between mb-4">
               <Award className="w-8 h-8 text-cyan-500" />
-              <span className="text-2xl font-bold">{stats.tokens.toLocaleString()}</span>
+              <span className="text-2xl font-bold">{stats.totalXP.toLocaleString()}</span>
             </div>
-            <p className="text-sm text-gray-400">XP Balance (pre-SIMU)</p>
-            <p className="text-xs text-green-600 mt-2">+200 XP this week</p>
+            <p className="text-sm text-gray-400">Total XP</p>
+            <p className="text-xs text-gray-400 mt-2">Includes tasks + node + referrals</p>
           </div>
 
           <div className="glass-effect rounded-lg p-6 border border-cyan-500/20">
             <div className="flex items-center justify-between mb-4">
               <Users className="w-8 h-8 text-cyan-500" />
-              <span className="text-2xl font-bold">{stats.referrals}</span>
+              <span className="text-2xl font-bold">{stats.nodeXP.toLocaleString()}</span>
             </div>
-            <p className="text-sm text-gray-400">Total Referrals</p>
-            <p className="text-xs text-green-600 mt-2">+5 this month</p>
+            <p className="text-sm text-gray-400">Node XP</p>
+            <p className="text-xs text-gray-400 mt-2">Earned from Lite/Ultra nodes</p>
           </div>
 
           <div className="glass-effect rounded-lg p-6 border border-cyan-500/20">

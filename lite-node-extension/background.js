@@ -96,7 +96,14 @@ async function doReportTick() {
       lastXpAwarded: Number(resp?.xpAwarded || 0),
     })
   } catch (e) {
-    await setState({ lastError: e?.message ? String(e.message) : String(e) })
+    const msg = e?.message ? String(e.message) : String(e)
+    // If user stopped the node from the dashboard, pause the extension.
+    if (msg.includes('409') && msg.toLowerCase().includes('stopped')) {
+      await chrome.alarms.clear(ALARM_NAME)
+      await setState({ running: false, lastError: 'Stopped from dashboard. Click Start to resume.' })
+      return
+    }
+    await setState({ lastError: msg })
   }
 }
 

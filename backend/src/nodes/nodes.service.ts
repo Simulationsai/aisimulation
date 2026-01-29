@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Node } from '../entities/node.entity'
@@ -125,6 +125,9 @@ export class NodesService {
     },
   ) {
     const node = await this.getNode(userId, nodeId)
+    if (node.status !== 'active') {
+      throw new ConflictException('Node is stopped')
+    }
     const xpAwarded = await this.calculateNodeXP(userId, nodeId, payload.uptimeHours)
 
     node.lastSeenAt = new Date()

@@ -37,7 +37,9 @@ export default function NodeDashboardPage() {
     setError('')
     setMetricsLoading(true)
     try {
-      const m = await api.nodes.getMetrics(nodeId)
+      // Refresh BOTH node and metrics so earnings/status update live.
+      const [n, m] = await Promise.all([api.nodes.get(nodeId), api.nodes.getMetrics(nodeId)])
+      setNode(n)
       setMetrics(m)
     } catch (e: any) {
       setError(e?.message || 'Failed to refresh metrics')
@@ -48,6 +50,18 @@ export default function NodeDashboardPage() {
 
   useEffect(() => {
     load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodeId])
+
+  // Keep node + metrics fresh while this page is open.
+  useEffect(() => {
+    if (!nodeId) return
+    const interval = setInterval(() => {
+      // Avoid spamming errors if user navigates away
+      if (document.visibilityState !== 'visible') return
+      refreshMetrics()
+    }, 8000)
+    return () => clearInterval(interval)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodeId])
 
@@ -147,7 +161,9 @@ export default function NodeDashboardPage() {
             </div>
             <div className="rounded-lg border border-gray-800 p-4">
               <div className="text-gray-400">Earnings (XP)</div>
-              <div className="text-xl font-semibold text-green-400">{node?.earnings ?? 0} XP</div>
+              <div className="text-xl font-semibold text-green-400">
+                {Number(node?.earnings ?? 0).toFixed(4)} XP
+              </div>
             </div>
             <div className="rounded-lg border border-gray-800 p-4">
               <div className="text-gray-400">Created</div>
